@@ -1,7 +1,9 @@
 ---
 name: Publish to Bonsai
 
-on: [push]
+on:
+  release:
+    types: [published]
 
 jobs:
   publish:
