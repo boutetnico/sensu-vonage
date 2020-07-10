@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/nexmo-community/nexmo-go"
 	"github.com/sensu-community/sensu-plugin-sdk/sensu"
 	corev2 "github.com/sensu/sensu-go/api/core/v2"
 )
@@ -16,7 +17,7 @@ type HandlerConfig struct {
 	sensu.PluginConfig
 	vonageAPIKey     string
 	vonageAPISecret  string
-	vonageFromNumber string
+	vonageFrom       string
 	vonageRecipients string
 }
 
@@ -61,7 +62,7 @@ var (
 			Argument:  "recipients",
 			Shorthand: "r",
 			Usage:     "Comma-separated list of numbesr of recipients",
-			Value:     &config.recipients,
+			Value:     &config.vonageRecipients,
 		},
 	}
 )
@@ -74,10 +75,10 @@ func main() {
 func checkArgs(_ *corev2.Event) error {
 	// Support deprecated environment variables
 	if apiKey := os.Getenv("VONAGE_API_KEY"); apiKey != "" {
-		config.vonageApiKey = apiKey
+		config.vonageAPIKey = apiKey
 	}
 	if apiSecret := os.Getenv("VONAGE_API_SECRET"); apiSecret != "" {
-		config.vonageApiSecret = apiSecret
+		config.vonageAPISecret = apiSecret
 	}
 	if from := os.Getenv("VONAGE_FROM"); from != "" {
 		config.vonageFrom = from
@@ -135,9 +136,9 @@ func sendMessage(event *corev2.Event) error {
 
 	client := nexmo.NewClient(http.DefaultClient, auth)
 	smsReq := nexmo.SendSMSRequest{
-		From: config.fromNumber,
+		From: config.vonageFrom,
 		To:   config.vonageRecipients,
-		Text: event,
+		Text: formattedMessage(event),
 	}
 
 	callR, _, err := client.SMS.SendSMS(smsReq)
@@ -147,4 +148,6 @@ func sendMessage(event *corev2.Event) error {
 	}
 
 	fmt.Println("Status:", callR.Messages[0].Status)
+
+	return nil
 }
