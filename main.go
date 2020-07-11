@@ -119,17 +119,6 @@ func formattedMessage(event *corev2.Event) string {
 	return fmt.Sprintf("%s - %s", formattedEventAction(event), eventSummary(event, 100))
 }
 
-func messageStatus(event *corev2.Event) string {
-	switch event.Check.Status {
-	case 0:
-		return "Resolved"
-	case 2:
-		return "Critical"
-	default:
-		return "Warning"
-	}
-}
-
 func sendMessage(event *corev2.Event) error {
 	auth := nexmo.NewAuthSet()
 	auth.SetAPISecret(config.vonageAPIKey, config.vonageAPISecret)
