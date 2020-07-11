@@ -124,19 +124,22 @@ func sendMessage(event *corev2.Event) error {
 	auth.SetAPISecret(config.vonageAPIKey, config.vonageAPISecret)
 
 	client := nexmo.NewClient(http.DefaultClient, auth)
-	smsReq := nexmo.SendSMSRequest{
-		From: config.vonageFrom,
-		To:   config.vonageRecipients,
-		Text: formattedMessage(event),
+
+	recipients := strings.Split(config.vonageRecipients, ",")
+
+	for _, recipient := range recipients {
+		smsReq := nexmo.SendSMSRequest{
+			From: config.vonageFrom,
+			To:   recipient,
+			Text: formattedMessage(event),
+		}
+
+		_, _, err := client.SMS.SendSMS(smsReq)
+
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-
-	callR, _, err := client.SMS.SendSMS(smsReq)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Status:", callR.Messages[0].Status)
 
 	return nil
 }
